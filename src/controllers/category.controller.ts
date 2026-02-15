@@ -7,17 +7,23 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
         const categoryData = req.body;
 
         if (req.file) {
-            categoryData.imageUrl = req.file.path
+            categoryData.imageUrl = `uploads/${req.file.filename}`;
         }
 
         const category = new Category(categoryData);
         await category.save();
-        res.status(201).json(category)
 
-    } catch (error) {
-        res.status(500).json({ message: "Error creating Ctegory", error });
+        res.status(201).json(category);
+
+    } catch (error: any) {
+        res.status(500).json({
+            message: "Error creating Category",
+            error: error?.message
+        });
     }
-}
+};
+
+
 
 export const getCategories = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -46,15 +52,17 @@ export const updateCategory = async (req: Request, res: Response): Promise<void>
     try {
         const updateData = req.body;
 
-        // jika upload gambar baru
         if (req.file) {
-            updateData.imageUrl = req.file.path;
+            updateData.imageUrl = `uploads/${req.file.filename}`;
         }
 
         const updatedCategory = await Category.findByIdAndUpdate(
             req.params.id,
             updateData,
-            { new: true, runValidators: true }
+            {
+                returnDocument: "after",
+                runValidators: true
+            }
         );
 
         if (!updatedCategory) {
@@ -68,6 +76,7 @@ export const updateCategory = async (req: Request, res: Response): Promise<void>
         res.status(500).json({ message: "Error updating category", error });
     }
 };
+
 
 export const deleteCategory = async (req: Request, res: Response): Promise<void> => {
     try {
